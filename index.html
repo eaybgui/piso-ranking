@@ -1,0 +1,557 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --ink:#132A3E;
+    --ink-2:#1D3D57;
+    --paper:#F4F1E8;
+    --paper-dim:#E7E2D3;
+    --line:#7FB2CE;
+    --signal:#E2762B;
+    --signal-dim:#C7621F;
+    --ok:#4C8B6B;
+    --bad:#B8543F;
+    --font-display:'Space Grotesk', sans-serif;
+    --font-body:'Inter', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+
+  .app{
+    background:var(--ink);
+    background-image:
+      linear-gradient(var(--ink-2) 1px, transparent 1px),
+      linear-gradient(90deg, var(--ink-2) 1px, transparent 1px);
+    background-size: 28px 28px;
+    color:var(--paper);
+    font-family:var(--font-body);
+    min-height:100%;
+    padding:0;
+    position:relative;
+  }
+
+  .wrap{ max-width:980px; margin:0 auto; padding:28px 20px 64px; }
+
+  .config-banner{
+    background:var(--bad); color:#fff; font-family:var(--font-mono); font-size:12.5px;
+    padding:12px 16px; border-radius:6px; margin-bottom:20px; line-height:1.6;
+  }
+  .config-banner code{ background:rgba(0,0,0,0.25); padding:1px 5px; border-radius:3px; }
+
+  /* ---------- header ---------- */
+  header.top{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    border-bottom:2px dashed rgba(244,241,232,0.25);
+    padding-bottom:18px; margin-bottom:26px; flex-wrap:wrap; gap:12px;
+  }
+  .title-block .eyebrow{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.12em;
+    color:var(--line); text-transform:uppercase; margin:0 0 6px;
+  }
+  .title-block h1{
+    font-family:var(--font-display); font-weight:700; font-size:clamp(28px,4.5vw,42px);
+    margin:0; letter-spacing:-0.01em;
+  }
+  .title-block h1 span{ color:var(--signal); }
+  .userbox{ text-align:right; font-family:var(--font-mono); font-size:13px; color:var(--paper-dim); }
+  .userbox b{ color:var(--paper); font-family:var(--font-body); font-weight:600; font-size:15px; display:block; }
+  .userbox button{
+    margin-top:6px; background:none; border:1px solid rgba(244,241,232,0.35); color:var(--paper-dim);
+    font-family:var(--font-mono); font-size:11px; padding:4px 9px; border-radius:3px; cursor:pointer;
+  }
+  .userbox button:hover{ border-color:var(--line); color:var(--paper); }
+
+  /* ---------- name gate ---------- */
+  .gate{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    min-height:70vh; text-align:center; gap:26px;
+  }
+  .gate .eyebrow{ font-family:var(--font-mono); font-size:12px; letter-spacing:.14em; color:var(--line); text-transform:uppercase; }
+  .gate h1{ font-family:var(--font-display); font-weight:700; font-size:clamp(30px,6vw,48px); margin:0; max-width:600px; }
+  .gate h1 span{ color:var(--signal); }
+  .name-grid{ display:grid; grid-template-columns:repeat(2,minmax(140px,1fr)); gap:14px; width:min(420px,90vw); }
+  .name-tag{
+    font-family:var(--font-display); font-weight:600; font-size:18px;
+    background:var(--paper); color:var(--ink); border:none; border-radius:6px;
+    padding:22px 10px; cursor:pointer; position:relative; letter-spacing:.01em;
+    transition:transform .12s ease, background .12s ease;
+    border-top:4px solid var(--signal);
+  }
+  .name-tag:hover{ transform:translateY(-3px); background:#fff; }
+  .name-tag:active{ transform:translateY(0); }
+
+  /* ---------- controls row ---------- */
+  .controls{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:22px; flex-wrap:wrap; }
+  .view-toggle{ display:flex; gap:6px; background:rgba(0,0,0,0.2); padding:4px; border-radius:8px; }
+  .view-toggle button{
+    font-family:var(--font-mono); font-size:12.5px; letter-spacing:.04em; text-transform:uppercase;
+    background:none; border:none; color:var(--paper-dim); padding:8px 14px; border-radius:6px; cursor:pointer;
+  }
+  .view-toggle button.active{ background:var(--paper); color:var(--ink); font-weight:600; }
+
+  .btn-group{ display:flex; gap:8px; flex-wrap:wrap; }
+  .calc-btn{
+    font-family:var(--font-display); font-weight:600; font-size:14.5px;
+    background:var(--signal); color:var(--ink); border:none; border-radius:6px;
+    padding:12px 20px; cursor:pointer; display:flex; align-items:center; gap:8px;
+    box-shadow:0 3px 0 var(--signal-dim);
+  }
+  .calc-btn:hover{ filter:brightness(1.06); }
+  .calc-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--signal-dim); }
+
+  .ghost-btn{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:.03em;
+    background:transparent; color:var(--paper-dim); border:1px solid rgba(244,241,232,0.35);
+    border-radius:6px; padding:11px 14px; cursor:pointer;
+  }
+  .ghost-btn:hover{ border-color:var(--line); color:var(--paper); }
+
+  .sync-status{ font-family:var(--font-mono); font-size:11px; color:var(--paper-dim); opacity:.75; }
+  .sync-status.err{ color:var(--bad); opacity:1; }
+
+  /* ---------- apartment grid ---------- */
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+
+  .card{
+    background:var(--paper); color:var(--ink); border-radius:8px; padding:16px 16px 14px;
+    position:relative; border:1px solid rgba(0,0,0,0.08);
+  }
+  .card .tabrow{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+  .badges{ display:flex; gap:6px; }
+  .badge{
+    font-family:var(--font-mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.05em;
+    padding:3px 7px; border-radius:3px; background:var(--paper-dim); color:var(--ink-2);
+  }
+  .badge.fc{ background:#DDEAE1; color:#265C43; }
+  .badge.id{ background:#E4E3F2; color:#39336B; }
+  .card .idnum{ font-family:var(--font-mono); font-size:11px; color:#8A8474; }
+
+  .card a.ext{
+    font-family:var(--font-mono); font-size:12px; color:var(--ink); text-decoration:none;
+    border-bottom:1px solid var(--signal); padding-bottom:1px; display:inline-flex; align-items:center; gap:4px;
+    margin-bottom:12px;
+  }
+  .card a.ext:hover{ color:var(--signal-dim); }
+
+  .cat-row{ display:flex; align-items:center; justify-content:space-between; padding:5px 0; }
+  .cat-row .cat-label{ font-size:12.5px; color:var(--ink-2); font-weight:500; }
+  .dots{ display:flex; gap:4px; }
+  .dot{
+    width:16px; height:16px; border-radius:3px; border:1.5px solid #C9C2AC; background:transparent;
+    cursor:pointer; padding:0;
+  }
+  .dot.filled{ background:var(--signal); border-color:var(--signal); }
+  .dot:hover{ border-color:var(--signal-dim); }
+  .dot:disabled{ cursor:wait; opacity:.6; }
+
+  .card .status{
+    margin-top:10px; padding-top:9px; border-top:1px dashed #D6D0BE;
+    font-family:var(--font-mono); font-size:10.5px; color:#8A8474; display:flex; justify-content:space-between;
+  }
+  .card .status .saved{ color:var(--ok); opacity:0; transition:opacity .3s; }
+  .card .status .saved.show{ opacity:1; }
+  .card .status .saved.err{ color:var(--bad); }
+
+  /* ---------- ranking view ---------- */
+  .rank-list{ display:flex; flex-direction:column; gap:10px; }
+  .rank-row{
+    background:var(--paper); color:var(--ink); border-radius:8px; padding:14px 16px;
+    display:grid; grid-template-columns:44px 1fr auto; gap:14px; align-items:center;
+  }
+  .rank-row.top1{ border-left:4px solid var(--signal); }
+  .stamp{
+    width:40px; height:40px; border-radius:50%; border:2px solid var(--ink);
+    display:flex; align-items:center; justify-content:center; font-family:var(--font-display);
+    font-weight:700; font-size:16px; flex-shrink:0;
+  }
+  .rank-row.top1 .stamp{ background:var(--signal); border-color:var(--signal); color:var(--ink); }
+  .rank-main .name{ font-family:var(--font-mono); font-size:12px; color:#8A8474; margin-bottom:2px; }
+  .rank-main .breakdown{ display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; }
+  .mini{ font-family:var(--font-mono); font-size:10.5px; color:var(--ink-2); }
+  .mini b{ color:var(--ink); }
+  .score-block{ text-align:right; }
+  .score{ font-family:var(--font-display); font-weight:700; font-size:26px; }
+  .voters{ font-family:var(--font-mono); font-size:10.5px; color:#8A8474; }
+  .rank-row a.ext{ font-family:var(--font-mono); font-size:11px; color:var(--ink); text-decoration:none; border-bottom:1px solid var(--signal); }
+
+  .empty-note{
+    font-family:var(--font-mono); font-size:12.5px; color:var(--paper-dim); text-align:center;
+    padding:40px 20px; border:1px dashed rgba(244,241,232,0.3); border-radius:8px;
+  }
+
+  footer.note{
+    margin-top:36px; font-family:var(--font-mono); font-size:11px; color:var(--paper-dim);
+    opacity:.7; text-align:center; line-height:1.6;
+  }
+
+  @media (max-width:520px){
+    .rank-row{ grid-template-columns:36px 1fr; }
+    .score-block{ grid-column:1 / -1; text-align:left; display:flex; justify-content:space-between; align-items:center; margin-top:6px; }
+  }
+</style>
+
+<div class="app">
+  <div class="wrap">
+
+    <div id="configBanner" class="config-banner" style="display:none;">
+      ⚠ Falta configurar la URL de Google Apps Script. Edita la constante <code>APPS_SCRIPT_URL</code> al principio del &lt;script&gt; con la URL de tu Web App desplegada, y vuelve a publicar el artifact.
+    </div>
+
+    <div id="gate" class="gate">
+      <div class="eyebrow">Búsqueda de piso · Valencia</div>
+      <h1>¿Quién <span>eres</span>?</h1>
+      <div class="name-grid" id="nameGrid"></div>
+    </div>
+
+    <div id="main" style="display:none;">
+      <header class="top">
+        <div class="title-block">
+          <p class="eyebrow">19 fichas · 5 criterios · datos en Google Sheets</p>
+          <h1>Piso <span>Ranking</span></h1>
+        </div>
+        <div class="userbox">
+          <b id="userName">—</b>
+          votando
+          <button id="switchUser">cambiar</button>
+        </div>
+      </header>
+
+      <div class="controls">
+        <div class="view-toggle">
+          <button id="tabVote" class="active">Puntuar</button>
+          <button id="tabRank">Ranking</button>
+        </div>
+        <div class="btn-group">
+          <button class="calc-btn" id="calcBtn">↻ Calcular ranking actual</button>
+          <button class="ghost-btn" id="downloadVotesBtn">⬇ Votos (JSON)</button>
+          <button class="ghost-btn" id="downloadRankBtn">⬇ Ranking (JSON)</button>
+        </div>
+      </div>
+      <div class="sync-status" id="syncStatus"></div>
+
+      <div id="voteView" class="grid" style="margin-top:14px;"></div>
+      <div id="rankView" class="rank-list" style="display:none; margin-top:14px;"></div>
+    </div>
+
+    <footer class="note">
+      Los votos se guardan en una Google Sheet compartida entre Elies, Joan, Kike y PdBara — cualquiera puede ver las puntuaciones de los demás.<br>
+      Puntuación = media simple de las 5 categorías (habitaciones, zonas comunes, baños, localización, cocina), promediada entre quienes hayan votado.
+    </footer>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  // ============================================================
+  // 1) PEGA AQUÍ LA URL DE TU GOOGLE APPS SCRIPT WEB APP
+  //    (termina en /exec). Ver tutorial de despliegue.
+  // ============================================================
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3jRtwCl11WTvmfaF9xhHiJpvqrjFsvDItflcXaK2RQpdrUfyh0TbrCKdjaUn69QiceQ/exec";
+
+  const USERS = ["Elies","Joan","Kike","PdBara"];
+  const CATS = [
+    {key:"habitaciones", label:"Habitaciones"},
+    {key:"zonas_comunes", label:"Zonas comunes"},
+    {key:"banos", label:"Baños"},
+    {key:"localizacion", label:"Localización"},
+    {key:"cocina", label:"Cocina"}
+  ];
+
+  const APARTMENTS = [
+    {id:"fc-183548660", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-terraza-ascensor-amueblado/183548660/d"},
+    {id:"fc-185170636", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-calefaccion-terraza-ascensor-amueblado/185170636/d"},
+    {id:"fc-182765594", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-terraza-ascensor-amueblado/182765594/d"},
+    {id:"fc-182737040", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-calefaccion-terraza-ascensor-amueblado/182737040/d"},
+    {id:"fc-187581980", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-calefaccion-ascensor-amueblado-internet/187581980/d"},
+    {id:"fc-182696362", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-terraza-ascensor-amueblado/182696362/d?stc=dis-sharead-sharead"},
+    {id:"fc-182746940", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-terraza-ascensor-amueblado/182746940/d?stc=dis-sharead-sharead"},
+    {id:"fc-182702141", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-terraza-ascensor-amueblado/182702141/d?stc=dis-sharead-sharead"},
+    {id:"fc-190148010", portal:"Fotocasa", tipo:"Alquiler", url:"https://www.fotocasa.es/es/alquiler/vivienda/valencia-capital/aire-acondicionado-calefaccion-amueblado-internet/190148010/d?stc=dis-sharead-sharead"},
+    {id:"fc-190245757", portal:"Fotocasa", tipo:"Alquiler", url:"https://www.fotocasa.es/es/alquiler/vivienda/valencia-capital/aire-acondicionado-calefaccion-amueblado-internet/190245757/d?stc=dis-sharead-sharead"},
+    {id:"id-111992236", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/111992236/"},
+    {id:"id-111571020", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/111571020/"},
+    {id:"id-95013240", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/95013240/"},
+    {id:"id-89428005", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/89428005/"},
+    {id:"id-97826698", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/97826698/mapa"},
+    {id:"fc-190136955", portal:"Fotocasa", tipo:"Alquiler", url:"https://www.fotocasa.es/es/alquiler/vivienda/valencia-capital/aire-acondicionado-calefaccion-amueblado-internet/190136955/d?stc=dis-sharead-sharead"},
+    {id:"fc-190148137", portal:"Fotocasa", tipo:"Alquiler", url:"https://www.fotocasa.es/es/alquiler/vivienda/valencia-capital/aire-acondicionado-calefaccion-amueblado-internet/190148137/d?stc=dis-sharead-sharead"},
+    {id:"fc-190148030", portal:"Fotocasa", tipo:"Alquiler", url:"https://www.fotocasa.es/es/alquiler/vivienda/valencia-capital/aire-acondicionado-calefaccion-amueblado-internet/190148030/d?stc=dis-sharead-sharead"},
+    {id:"id-94378033", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/94378033/mapa"}
+  ];
+
+  let currentUser = null;
+  let votesCache = {}; // { aptId: { userName: {cat:score,...} } }
+
+  const configured = APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf("http") === 0;
+  if(!configured){
+    document.getElementById("configBanner").style.display = "block";
+  }
+
+  const syncStatus = document.getElementById("syncStatus");
+  function setSync(msg, isErr){
+    syncStatus.textContent = msg;
+    syncStatus.className = "sync-status" + (isErr ? " err" : "");
+  }
+
+  // ---------- backend (Google Apps Script) ----------
+  async function loadAllVotes(){
+    if(!configured){ votesCache = {}; return votesCache; }
+    setSync("Sincronizando…");
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, {method:"GET"});
+      const data = await res.json();
+      votesCache = (data && data.votes) ? data.votes : {};
+      setSync("Sincronizado con Google Sheets ✓");
+    }catch(e){
+      setSync("No se pudo sincronizar con la hoja. Revisa la URL / conexión.", true);
+    }
+    return votesCache;
+  }
+
+  async function saveVote(aptId, catKey, value){
+    if(!configured) return false;
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, {
+        method:"POST",
+        body: JSON.stringify({piso:aptId, usuario:currentUser, categoria:catKey, valor:value})
+      });
+      const data = await res.json();
+      if(data && data.ok){
+        // reflect locally too
+        if(!votesCache[aptId]) votesCache[aptId] = {};
+        if(!votesCache[aptId][currentUser]) votesCache[aptId][currentUser] = {};
+        votesCache[aptId][currentUser][catKey] = value;
+        return true;
+      }
+      return false;
+    }catch(e){
+      return false;
+    }
+  }
+
+  // ---------- gate ----------
+  const nameGrid = document.getElementById("nameGrid");
+  USERS.forEach(u => {
+    const btn = document.createElement("button");
+    btn.className = "name-tag";
+    btn.textContent = u;
+    btn.onclick = () => enterAs(u);
+    nameGrid.appendChild(btn);
+  });
+
+  function enterAs(name){
+    currentUser = name;
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("main").style.display = "block";
+    document.getElementById("userName").textContent = name;
+    init();
+  }
+
+  document.getElementById("switchUser").onclick = () => {
+    currentUser = null;
+    document.getElementById("main").style.display = "none";
+    document.getElementById("gate").style.display = "flex";
+  };
+
+  // ---------- tabs ----------
+  const tabVote = document.getElementById("tabVote");
+  const tabRank = document.getElementById("tabRank");
+  const voteView = document.getElementById("voteView");
+  const rankView = document.getElementById("rankView");
+
+  tabVote.onclick = () => {
+    tabVote.classList.add("active"); tabRank.classList.remove("active");
+    voteView.style.display = "grid"; rankView.style.display = "none";
+  };
+  tabRank.onclick = async () => {
+    tabRank.classList.add("active"); tabVote.classList.remove("active");
+    voteView.style.display = "none"; rankView.style.display = "flex";
+    await renderRanking();
+  };
+  document.getElementById("calcBtn").onclick = async () => {
+    tabRank.classList.add("active"); tabVote.classList.remove("active");
+    voteView.style.display = "none"; rankView.style.display = "flex";
+    await renderRanking();
+  };
+
+  // ---------- vote view ----------
+  async function init(){
+    await loadAllVotes();
+    renderVoteCards();
+  }
+
+  function portalBadgeClass(portal){
+    return portal === "Fotocasa" ? "fc" : "id";
+  }
+
+  function renderVoteCards(){
+    voteView.innerHTML = "";
+    APARTMENTS.forEach(apt => {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const idNum = apt.id.split("-")[1];
+      const myVotes = (votesCache[apt.id] && votesCache[apt.id][currentUser]) || {};
+
+      card.innerHTML = `
+        <div class="tabrow">
+          <div class="badges">
+            <span class="badge ${portalBadgeClass(apt.portal)}">${apt.portal}</span>
+            <span class="badge">${apt.tipo}</span>
+          </div>
+          <span class="idnum">#${idNum}</span>
+        </div>
+        <a class="ext" href="${apt.url}" target="_blank" rel="noopener">Ver anuncio ↗</a>
+        <div class="cats"></div>
+        <div class="status">
+          <span>tu voto</span>
+          <span class="saved">guardado ✓</span>
+        </div>
+      `;
+
+      const catsBox = card.querySelector(".cats");
+      CATS.forEach(cat => {
+        const row = document.createElement("div");
+        row.className = "cat-row";
+        const currentVal = myVotes[cat.key] || 0;
+
+        const dotsHtml = [1,2,3,4,5].map(n =>
+          `<button class="dot ${n<=currentVal?'filled':''}" data-cat="${cat.key}" data-val="${n}"></button>`
+        ).join("");
+
+        row.innerHTML = `<span class="cat-label">${cat.label}</span><div class="dots">${dotsHtml}</div>`;
+        catsBox.appendChild(row);
+      });
+
+      catsBox.querySelectorAll(".dot").forEach(dot => {
+        dot.addEventListener("click", async () => {
+          const catKey = dot.dataset.cat;
+          const val = parseInt(dot.dataset.val, 10);
+          const rowDots = catsBox.querySelectorAll(`.dot[data-cat="${catKey}"]`);
+          rowDots.forEach(d => { d.disabled = true; });
+          rowDots.forEach(d => {
+            d.classList.toggle("filled", parseInt(d.dataset.val,10) <= val);
+          });
+          const savedFlag = card.querySelector(".saved");
+          const ok = await saveVote(apt.id, catKey, val);
+          rowDots.forEach(d => { d.disabled = false; });
+          savedFlag.classList.remove("err");
+          if(ok){
+            savedFlag.textContent = "guardado ✓";
+            savedFlag.classList.add("show");
+            setTimeout(()=>savedFlag.classList.remove("show"), 1500);
+          } else {
+            savedFlag.textContent = "error al guardar ✗";
+            savedFlag.classList.add("show","err");
+          }
+        });
+      });
+
+      voteView.appendChild(card);
+    });
+  }
+
+  // ---------- ranking ----------
+  function computeResults(){
+    return APARTMENTS.map(apt => {
+      const userVotes = votesCache[apt.id] || {};
+      const voterNames = Object.keys(userVotes);
+
+      const catMeans = CATS.map(cat => {
+        const vals = voterNames
+          .map(u => userVotes[u][cat.key])
+          .filter(v => typeof v === "number");
+        const mean = vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : null;
+        return {key:cat.key, label:cat.label, mean, n:vals.length};
+      });
+
+      const validCatMeans = catMeans.filter(c => c.mean !== null);
+      const overall = validCatMeans.length
+        ? validCatMeans.reduce((a,c)=>a+c.mean,0) / validCatMeans.length
+        : null;
+
+      return {apt, catMeans, overall, voters: voterNames.length};
+    });
+  }
+
+  async function renderRanking(){
+    rankView.innerHTML = `<div class="empty-note">Calculando…</div>`;
+    await loadAllVotes();
+
+    const results = computeResults();
+    const withScore = results.filter(r => r.overall !== null).sort((a,b)=>b.overall-a.overall);
+    const withoutScore = results.filter(r => r.overall === null);
+
+    if(withScore.length === 0){
+      rankView.innerHTML = `<div class="empty-note">Todavía nadie ha votado ningún piso. Puntúa alguno en la pestaña "Puntuar" y vuelve aquí.</div>`;
+      return;
+    }
+
+    rankView.innerHTML = "";
+    withScore.forEach((r, i) => {
+      const idNum = r.apt.id.split("-")[1];
+      const row = document.createElement("div");
+      row.className = "rank-row" + (i===0 ? " top1" : "");
+      const breakdown = r.catMeans.map(c =>
+        `<span class="mini">${c.label.slice(0,4)} <b>${c.mean!==null? c.mean.toFixed(1) : '–'}</b></span>`
+      ).join("");
+      row.innerHTML = `
+        <div class="stamp">${i+1}</div>
+        <div class="rank-main">
+          <div class="name">${r.apt.portal} · ${r.apt.tipo} · #${idNum} · <a class="ext" href="${r.apt.url}" target="_blank" rel="noopener">ver ↗</a></div>
+          <div class="breakdown">${breakdown}</div>
+        </div>
+        <div class="score-block">
+          <div class="score">${r.overall.toFixed(2)}</div>
+          <div class="voters">${r.voters} voto${r.voters===1?'':'s'}</div>
+        </div>
+      `;
+      rankView.appendChild(row);
+    });
+
+    if(withoutScore.length){
+      const note = document.createElement("div");
+      note.className = "empty-note";
+      note.textContent = `${withoutScore.length} piso(s) todavía sin ningún voto.`;
+      rankView.appendChild(note);
+    }
+  }
+
+  // ---------- downloads ----------
+  function downloadJSON(obj, filename){
+    const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  document.getElementById("downloadVotesBtn").onclick = async () => {
+    await loadAllVotes();
+    downloadJSON({apartamentos:APARTMENTS, votos:votesCache}, "votos-pisos.json");
+  };
+
+  document.getElementById("downloadRankBtn").onclick = async () => {
+    await loadAllVotes();
+    const results = computeResults()
+      .filter(r=>r.overall!==null)
+      .sort((a,b)=>b.overall-a.overall)
+      .map((r,i)=>({
+        puesto:i+1,
+        piso:r.apt.id,
+        portal:r.apt.portal,
+        tipo:r.apt.tipo,
+        url:r.apt.url,
+        puntuacion:Number(r.overall.toFixed(2)),
+        votos:r.voters,
+        categorias:Object.fromEntries(r.catMeans.map(c=>[c.key, c.mean!==null?Number(c.mean.toFixed(2)):null]))
+      }));
+    downloadJSON(results, "ranking-pisos.json");
+  };
+
+})();
+</script>
