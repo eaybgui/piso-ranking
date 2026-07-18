@@ -96,10 +96,11 @@
     font-family:var(--font-display); font-weight:600; font-size:14.5px;
     background:var(--signal); color:var(--ink); border:none; border-radius:6px;
     padding:12px 20px; cursor:pointer; display:flex; align-items:center; gap:8px;
-    box-shadow:0 3px 0 var(--signal-dim);
+    box-shadow:0 3px 0 var(--signal-dim); white-space:nowrap;
   }
   .calc-btn:hover{ filter:brightness(1.06); }
   .calc-btn:active{ transform:translateY(2px); box-shadow:0 1px 0 var(--signal-dim); }
+  .calc-btn:disabled{ opacity:.6; cursor:wait; }
 
   .ghost-btn{
     font-family:var(--font-mono); font-size:12px; letter-spacing:.03em;
@@ -126,6 +127,7 @@
   }
   .badge.fc{ background:#DDEAE1; color:#265C43; }
   .badge.id{ background:#E4E3F2; color:#39336B; }
+  .badge.otro{ background:#EFE2D8; color:#7A4B2C; }
   .card .idnum{ font-family:var(--font-mono); font-size:11px; color:#8A8474; }
 
   .card a.ext{
@@ -181,6 +183,37 @@
     padding:40px 20px; border:1px dashed rgba(244,241,232,0.3); border-radius:8px;
   }
 
+  /* ---------- admin view ---------- */
+  .admin-note{
+    font-family:var(--font-mono); font-size:11.5px; color:var(--paper-dim); opacity:.8;
+    margin-bottom:16px; line-height:1.6;
+  }
+  .admin-add{
+    display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;
+  }
+  .admin-add input{
+    flex:1; min-width:220px; font-family:var(--font-mono); font-size:13px;
+    padding:12px 14px; border-radius:6px; border:1px solid #C9C2AC; background:var(--paper); color:var(--ink);
+  }
+  .admin-add input:focus{ outline:2px solid var(--signal); }
+  .admin-list{ display:flex; flex-direction:column; gap:8px; }
+  .admin-row{
+    background:var(--paper); color:var(--ink); border-radius:8px; padding:12px 14px;
+    display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  .admin-row .meta{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0; }
+  .admin-row .url{
+    font-family:var(--font-mono); font-size:11.5px; color:var(--ink-2); text-decoration:none;
+    max-width:360px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-bottom:1px solid transparent;
+  }
+  .admin-row .url:hover{ border-bottom-color:var(--signal); }
+  .del-btn{
+    font-family:var(--font-mono); font-size:11px; background:transparent; color:var(--bad);
+    border:1px solid var(--bad); border-radius:5px; padding:6px 10px; cursor:pointer; flex-shrink:0;
+  }
+  .del-btn:hover{ background:var(--bad); color:#fff; }
+  .del-btn:disabled{ opacity:.5; cursor:wait; }
+
   footer.note{
     margin-top:36px; font-family:var(--font-mono); font-size:11px; color:var(--paper-dim);
     opacity:.7; text-align:center; line-height:1.6;
@@ -196,7 +229,7 @@
   <div class="wrap">
 
     <div id="configBanner" class="config-banner" style="display:none;">
-      ⚠ Falta configurar la URL de Google Apps Script. Edita la constante <code>APPS_SCRIPT_URL</code> al principio del &lt;script&gt; con la URL de tu Web App desplegada, y vuelve a publicar el artifact.
+      ⚠ Falta configurar la URL de Google Apps Script. Edita la constante <code>APPS_SCRIPT_URL</code> al principio del &lt;script&gt; con la URL de tu Web App desplegada, y vuelve a publicar/subir el archivo.
     </div>
 
     <div id="gate" class="gate">
@@ -208,7 +241,7 @@
     <div id="main" style="display:none;">
       <header class="top">
         <div class="title-block">
-          <p class="eyebrow">19 fichas · 5 criterios · datos en Google Sheets</p>
+          <p class="eyebrow" id="countEyebrow">— fichas · 5 criterios · Google Sheets</p>
           <h1>Piso <span>Ranking</span></h1>
         </div>
         <div class="userbox">
@@ -222,6 +255,7 @@
         <div class="view-toggle">
           <button id="tabVote" class="active">Puntuar</button>
           <button id="tabRank">Ranking</button>
+          <button id="tabAdmin">Admin</button>
         </div>
         <div class="btn-group">
           <button class="calc-btn" id="calcBtn">↻ Calcular ranking actual</button>
@@ -233,10 +267,19 @@
 
       <div id="voteView" class="grid" style="margin-top:14px;"></div>
       <div id="rankView" class="rank-list" style="display:none; margin-top:14px;"></div>
+
+      <div id="adminView" style="display:none; margin-top:14px;">
+        <p class="admin-note">Cualquiera puede añadir o eliminar pisos aquí, no hace falta contraseña — id para gestionar la lista entre vosotros con cuidado. Al eliminar un piso también se borran sus votos.</p>
+        <div class="admin-add">
+          <input type="text" id="newAptUrl" placeholder="Pega aquí el enlace del piso (Fotocasa, Idealista...)">
+          <button class="calc-btn" id="addAptBtn">+ Añadir piso</button>
+        </div>
+        <div id="adminList" class="admin-list"></div>
+      </div>
     </div>
 
     <footer class="note">
-      Los votos se guardan en una Google Sheet compartida entre Elies, Joan, Kike y PdBara — cualquiera puede ver las puntuaciones de los demás.<br>
+      Los votos y la lista de pisos se guardan en una Google Sheet compartida entre Elies, Joan, Kike y PdBara.<br>
       Puntuación = media simple de las 5 categorías (habitaciones, zonas comunes, baños, localización, cocina), promediada entre quienes hayan votado.
     </footer>
 
@@ -246,8 +289,7 @@
 <script>
 (function(){
   // ============================================================
-  // 1) PEGA AQUÍ LA URL DE TU GOOGLE APPS SCRIPT WEB APP
-  //    (termina en /exec). Ver tutorial de despliegue.
+  // URL de tu Google Apps Script Web App (termina en /exec)
   // ============================================================
   const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz3jRtwCl11WTvmfaF9xhHiJpvqrjFsvDItflcXaK2RQpdrUfyh0TbrCKdjaUn69QiceQ/exec";
 
@@ -260,30 +302,9 @@
     {key:"cocina", label:"Cocina"}
   ];
 
-  const APARTMENTS = [
-    {id:"fc-183548660", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-terraza-ascensor-amueblado/183548660/d"},
-    {id:"fc-185170636", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-calefaccion-terraza-ascensor-amueblado/185170636/d"},
-    {id:"fc-182765594", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-terraza-ascensor-amueblado/182765594/d"},
-    {id:"fc-182737040", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-calefaccion-terraza-ascensor-amueblado/182737040/d"},
-    {id:"fc-187581980", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-calefaccion-ascensor-amueblado-internet/187581980/d"},
-    {id:"fc-182696362", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-terraza-ascensor-amueblado/182696362/d?stc=dis-sharead-sharead"},
-    {id:"fc-182746940", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-terraza-ascensor-amueblado/182746940/d?stc=dis-sharead-sharead"},
-    {id:"fc-182702141", portal:"Fotocasa", tipo:"Compartir", url:"https://www.fotocasa.es/es/compartir/vivienda/valencia-capital/aire-acondicionado-terraza-ascensor-amueblado/182702141/d?stc=dis-sharead-sharead"},
-    {id:"fc-190148010", portal:"Fotocasa", tipo:"Alquiler", url:"https://www.fotocasa.es/es/alquiler/vivienda/valencia-capital/aire-acondicionado-calefaccion-amueblado-internet/190148010/d?stc=dis-sharead-sharead"},
-    {id:"fc-190245757", portal:"Fotocasa", tipo:"Alquiler", url:"https://www.fotocasa.es/es/alquiler/vivienda/valencia-capital/aire-acondicionado-calefaccion-amueblado-internet/190245757/d?stc=dis-sharead-sharead"},
-    {id:"id-111992236", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/111992236/"},
-    {id:"id-111571020", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/111571020/"},
-    {id:"id-95013240", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/95013240/"},
-    {id:"id-89428005", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/89428005/"},
-    {id:"id-97826698", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/97826698/mapa"},
-    {id:"fc-190136955", portal:"Fotocasa", tipo:"Alquiler", url:"https://www.fotocasa.es/es/alquiler/vivienda/valencia-capital/aire-acondicionado-calefaccion-amueblado-internet/190136955/d?stc=dis-sharead-sharead"},
-    {id:"fc-190148137", portal:"Fotocasa", tipo:"Alquiler", url:"https://www.fotocasa.es/es/alquiler/vivienda/valencia-capital/aire-acondicionado-calefaccion-amueblado-internet/190148137/d?stc=dis-sharead-sharead"},
-    {id:"fc-190148030", portal:"Fotocasa", tipo:"Alquiler", url:"https://www.fotocasa.es/es/alquiler/vivienda/valencia-capital/aire-acondicionado-calefaccion-amueblado-internet/190148030/d?stc=dis-sharead-sharead"},
-    {id:"id-94378033", portal:"Idealista", tipo:"Anuncio", url:"https://www.idealista.com/inmueble/94378033/mapa"}
-  ];
-
+  let APARTMENTS = [];   // se carga desde el backend (Google Sheet "Pisos")
   let currentUser = null;
-  let votesCache = {}; // { aptId: { userName: {cat:score,...} } }
+  let votesCache = {};   // { aptId: { userName: {cat:score,...} } }
 
   const configured = APPS_SCRIPT_URL && APPS_SCRIPT_URL.indexOf("http") === 0;
   if(!configured){
@@ -297,39 +318,48 @@
   }
 
   // ---------- backend (Google Apps Script) ----------
-  async function loadAllVotes(){
-    if(!configured){ votesCache = {}; return votesCache; }
+  async function loadAll(){
+    if(!configured){ APARTMENTS = []; votesCache = {}; return; }
     setSync("Sincronizando…");
     try{
       const res = await fetch(APPS_SCRIPT_URL, {method:"GET"});
       const data = await res.json();
-      votesCache = (data && data.votes) ? data.votes : {};
+      APARTMENTS = data && data.apartments ? data.apartments : [];
+      votesCache = data && data.votes ? data.votes : {};
+      document.getElementById("countEyebrow").textContent = APARTMENTS.length + " fichas · 5 criterios · Google Sheets";
       setSync("Sincronizado con Google Sheets ✓");
     }catch(e){
       setSync("No se pudo sincronizar con la hoja. Revisa la URL / conexión.", true);
     }
-    return votesCache;
+  }
+
+  async function postAction(payload){
+    if(!configured) return {ok:false, error:"not-configured"};
+    try{
+      const res = await fetch(APPS_SCRIPT_URL, { method:"POST", body: JSON.stringify(payload) });
+      return await res.json();
+    }catch(e){
+      return {ok:false, error:String(e)};
+    }
   }
 
   async function saveVote(aptId, catKey, value){
-    if(!configured) return false;
-    try{
-      const res = await fetch(APPS_SCRIPT_URL, {
-        method:"POST",
-        body: JSON.stringify({piso:aptId, usuario:currentUser, categoria:catKey, valor:value})
-      });
-      const data = await res.json();
-      if(data && data.ok){
-        // reflect locally too
-        if(!votesCache[aptId]) votesCache[aptId] = {};
-        if(!votesCache[aptId][currentUser]) votesCache[aptId][currentUser] = {};
-        votesCache[aptId][currentUser][catKey] = value;
-        return true;
-      }
-      return false;
-    }catch(e){
-      return false;
+    const data = await postAction({action:"vote", piso:aptId, usuario:currentUser, categoria:catKey, valor:value});
+    if(data && data.ok){
+      if(!votesCache[aptId]) votesCache[aptId] = {};
+      if(!votesCache[aptId][currentUser]) votesCache[aptId][currentUser] = {};
+      votesCache[aptId][currentUser][catKey] = value;
+      return true;
     }
+    return false;
+  }
+
+  async function addApartment(url){
+    return postAction({action:"addApartment", url:url});
+  }
+
+  async function deleteApartment(pisoId){
+    return postAction({action:"deleteApartment", piso:pisoId});
   }
 
   // ---------- gate ----------
@@ -359,41 +389,48 @@
   // ---------- tabs ----------
   const tabVote = document.getElementById("tabVote");
   const tabRank = document.getElementById("tabRank");
+  const tabAdmin = document.getElementById("tabAdmin");
   const voteView = document.getElementById("voteView");
   const rankView = document.getElementById("rankView");
+  const adminView = document.getElementById("adminView");
 
-  tabVote.onclick = () => {
-    tabVote.classList.add("active"); tabRank.classList.remove("active");
-    voteView.style.display = "grid"; rankView.style.display = "none";
-  };
-  tabRank.onclick = async () => {
-    tabRank.classList.add("active"); tabVote.classList.remove("active");
-    voteView.style.display = "none"; rankView.style.display = "flex";
-    await renderRanking();
-  };
-  document.getElementById("calcBtn").onclick = async () => {
-    tabRank.classList.add("active"); tabVote.classList.remove("active");
-    voteView.style.display = "none"; rankView.style.display = "flex";
-    await renderRanking();
-  };
+  function showView(which){
+    tabVote.classList.toggle("active", which==="vote");
+    tabRank.classList.toggle("active", which==="rank");
+    tabAdmin.classList.toggle("active", which==="admin");
+    voteView.style.display = which==="vote" ? "grid" : "none";
+    rankView.style.display = which==="rank" ? "flex" : "none";
+    adminView.style.display = which==="admin" ? "block" : "none";
+  }
+
+  tabVote.onclick = () => showView("vote");
+  tabRank.onclick = async () => { showView("rank"); await renderRanking(); };
+  tabAdmin.onclick = () => { showView("admin"); renderAdminList(); };
+  document.getElementById("calcBtn").onclick = async () => { showView("rank"); await renderRanking(); };
 
   // ---------- vote view ----------
   async function init(){
-    await loadAllVotes();
+    await loadAll();
     renderVoteCards();
   }
 
   function portalBadgeClass(portal){
-    return portal === "Fotocasa" ? "fc" : "id";
+    if(portal === "Fotocasa") return "fc";
+    if(portal === "Idealista") return "id";
+    return "otro";
   }
 
   function renderVoteCards(){
     voteView.innerHTML = "";
+    if(APARTMENTS.length === 0){
+      voteView.innerHTML = `<div class="empty-note">Todavía no hay pisos en la lista. Añade uno desde la pestaña "Admin".</div>`;
+      return;
+    }
     APARTMENTS.forEach(apt => {
       const card = document.createElement("div");
       card.className = "card";
 
-      const idNum = apt.id.split("-")[1];
+      const idNum = apt.id.includes("-") ? apt.id.split("-")[1] : apt.id;
       const myVotes = (votesCache[apt.id] && votesCache[apt.id][currentUser]) || {};
 
       card.innerHTML = `
@@ -479,12 +516,16 @@
 
   async function renderRanking(){
     rankView.innerHTML = `<div class="empty-note">Calculando…</div>`;
-    await loadAllVotes();
+    await loadAll();
 
     const results = computeResults();
     const withScore = results.filter(r => r.overall !== null).sort((a,b)=>b.overall-a.overall);
     const withoutScore = results.filter(r => r.overall === null);
 
+    if(APARTMENTS.length === 0){
+      rankView.innerHTML = `<div class="empty-note">Todavía no hay pisos en la lista. Añade uno desde la pestaña "Admin".</div>`;
+      return;
+    }
     if(withScore.length === 0){
       rankView.innerHTML = `<div class="empty-note">Todavía nadie ha votado ningún piso. Puntúa alguno en la pestaña "Puntuar" y vuelve aquí.</div>`;
       return;
@@ -492,7 +533,7 @@
 
     rankView.innerHTML = "";
     withScore.forEach((r, i) => {
-      const idNum = r.apt.id.split("-")[1];
+      const idNum = r.apt.id.includes("-") ? r.apt.id.split("-")[1] : r.apt.id;
       const row = document.createElement("div");
       row.className = "rank-row" + (i===0 ? " top1" : "");
       const breakdown = r.catMeans.map(c =>
@@ -520,6 +561,65 @@
     }
   }
 
+  // ---------- admin ----------
+  function renderAdminList(){
+    adminList.innerHTML = "";
+    if(APARTMENTS.length === 0){
+      adminList.innerHTML = `<div class="empty-note">No hay pisos todavía. Añade el primero arriba.</div>`;
+      return;
+    }
+    APARTMENTS.forEach(apt => {
+      const row = document.createElement("div");
+      row.className = "admin-row";
+      row.innerHTML = `
+        <div class="meta">
+          <span class="badge ${portalBadgeClass(apt.portal)}">${apt.portal}</span>
+          <a class="url" href="${apt.url}" target="_blank" rel="noopener">${apt.url}</a>
+        </div>
+        <button class="del-btn">Eliminar</button>
+      `;
+      row.querySelector(".del-btn").addEventListener("click", async () => {
+        const sure = confirm("¿Eliminar este piso? También se borrarán todos sus votos guardados.");
+        if(!sure) return;
+        const btn = row.querySelector(".del-btn");
+        btn.disabled = true; btn.textContent = "Eliminando…";
+        const res = await deleteApartment(apt.id);
+        if(res && res.ok){
+          await loadAll();
+          renderAdminList();
+          renderVoteCards();
+        } else {
+          btn.disabled = false; btn.textContent = "Eliminar";
+          alert("No se pudo eliminar. Inténtalo de nuevo.");
+        }
+      });
+      adminList.appendChild(row);
+    });
+  }
+
+  const adminList = document.getElementById("adminList");
+  const newAptUrl = document.getElementById("newAptUrl");
+  const addAptBtn = document.getElementById("addAptBtn");
+
+  addAptBtn.addEventListener("click", async () => {
+    const url = newAptUrl.value.trim();
+    if(!url || url.indexOf("http") !== 0){
+      alert("Pega un enlace válido (que empiece por http).");
+      return;
+    }
+    addAptBtn.disabled = true; addAptBtn.textContent = "Añadiendo…";
+    const res = await addApartment(url);
+    addAptBtn.disabled = false; addAptBtn.textContent = "+ Añadir piso";
+    if(res && res.ok){
+      newAptUrl.value = "";
+      await loadAll();
+      renderAdminList();
+      renderVoteCards();
+    } else {
+      alert("No se pudo añadir el piso. Comprueba el enlace e inténtalo de nuevo.");
+    }
+  });
+
   // ---------- downloads ----------
   function downloadJSON(obj, filename){
     const blob = new Blob([JSON.stringify(obj, null, 2)], {type:"application/json"});
@@ -531,12 +631,12 @@
   }
 
   document.getElementById("downloadVotesBtn").onclick = async () => {
-    await loadAllVotes();
+    await loadAll();
     downloadJSON({apartamentos:APARTMENTS, votos:votesCache}, "votos-pisos.json");
   };
 
   document.getElementById("downloadRankBtn").onclick = async () => {
-    await loadAllVotes();
+    await loadAll();
     const results = computeResults()
       .filter(r=>r.overall!==null)
       .sort((a,b)=>b.overall-a.overall)
